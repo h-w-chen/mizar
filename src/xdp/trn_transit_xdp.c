@@ -449,7 +449,7 @@ static __inline int trn_handle_scaled_ep_modify(struct transit_packet *pkt)
 static inline int trn_ingress_policy_check(__be64 tun_id, struct ipv4_tuple_t *ipv4_tuple)
 {
 	// if local pod is not having policy check enabled yet, allow the traffic
-	struct enforced_ip_t vsip = {.tun_id = tun_id, .ip_addr = ipv4_tuple->saddr};
+	struct enforced_ip_t vsip = {.tun_id = tun_id, .ip_addr = ipv4_tuple->daddr};
 	__u8 *v = bpf_map_lookup_elem(&vsip_enforce_map, &vsip);
 	if (!v || !*v) {
 		return 0 ;
@@ -521,9 +521,9 @@ static __inline int trn_process_inner_ip(struct transit_packet *pkt)
 
 	// ingress policy check
 	if (trn_ingress_policy_check(tunnel_id, &pkt->inner_ipv4_tuple)) {
-		bpf_debug("[Transit:%d:0x%x] ingress polict denied: proto: 0x%x, local 0x%x \n",
+		bpf_debug("[Transit] ingress polict denied: proto: 0x%x, local 0x%x \n",
 			pkt->inner_ipv4_tuple.protocol,
-			bpf_ntohl(pkt->inner_ipv4_tuple.saddr));
+			bpf_ntohl(pkt->inner_ipv4_tuple.daddr));
 
 		return XDP_ABORTED;
 	}
