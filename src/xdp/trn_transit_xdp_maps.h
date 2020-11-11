@@ -142,3 +142,15 @@ BPF_ANNOTATE_KV_PAIR(ep_host_cache, struct endpoint_key_t,
 		     struct remote_endpoint_t);
 
 struct bpf_map_def SEC("maps") xdpcap_hook = XDPCAP_HOOK();
+
+// pinned maps
+
+// todo: consider to reuse endpoints_map, if applicable?
+struct bpf_map_def SEC("maps") vsip_enforce_map = {
+	.type = BPF_MAP_TYPE_HASH,
+	.key_size = sizeof(struct enforced_ip_t),
+	.value_size = sizeof(__u8),
+	.max_entries = 1024,
+	.map_flags = 0,
+};
+BPF_ANNOTATE_KV_PAIR(vsip_enforce_map, struct enforced_ip_t, __u8);
