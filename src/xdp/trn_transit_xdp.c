@@ -508,6 +508,10 @@ static __inline int trn_process_inner_ip(struct transit_packet *pkt)
 	__be64 tunnel_id = trn_vni_to_tunnel_id(pkt->geneve->vni);
 
 	// todo: add conn_track related logic properly
+	if (conntrack_is_reply_of_tracked_conn(&conn_track_cache, pkt->agent_ep_tunid, &pkt->inner_ipv4_tuple)) {
+		goto xdp_continue;
+	}
+
 	if (pkt->inner_ipv4_tuple.protocol == IPPROTO_TCP || pkt->inner_ipv4_tuple.protocol == IPPROTO_UDP) {
 		if (is_ingress_enforced(tunnel_id, pkt->inner_ipv4_tuple.daddr)) {
 			if (0 != enforce_ingress_policy(tunnel_id, &pkt->inner_ipv4_tuple)) {
@@ -528,7 +532,7 @@ static __inline int trn_process_inner_ip(struct transit_packet *pkt)
 	/* Lookup the source endpoint*/
 	struct endpoint_t *src_ep;
 	struct endpoint_key_t src_epkey;
-
+xdp_continue:
 	__builtin_memcpy(&src_epkey.tunip[0], &tunnel_id, sizeof(tunnel_id));
 	src_epkey.tunip[2] = pkt->inner_ip->saddr;
 	src_ep = bpf_map_lookup_elem(&endpoints_map, &src_epkey);
