@@ -8,11 +8,11 @@ xdptestobj = $(xdpsrc:.c=_ebpf_debug.o)
 xdp: $(xdpobj) $(xdptestobj)
 
 %_ebpf.o: %.c
-	$(CLANG) -c $^ $(CLANGFLAGS) | $(LLC)  -o $@
+	$(CLANG) -c $^ $(CLANGFLAGS) | $(OPT) | $(LLC)  -o $@
 	cp $@ build/xdp
 
 %_ebpf_debug.o: %.c
-	$(CLANG) -c $^ $(CLANGFLAGS_DEBUG) | $(LLC)  -o $@
+	$(CLANG) -c $^ $(CLANGFLAGS_DEBUG) | $(OPT) | $(LLC)  -o $@
 	cp $@ build/xdp
 
 clean::

@@ -61,10 +61,5 @@ static inline int conntrack_is_reply_of_tracked_conn(void *conntracks, __u64 tun
 			.dport = tuple->sport,
 		},
 	};
-	// conn_track never keeps track of non tcp/udp sessions
-	if (!(tuple->protocol == IPPROTO_TCP || tuple->protocol == IPPROTO_UDP))
-		return 0;
-
-	__u8 *p = bpf_map_lookup_elem(conntracks, &rev_conn);
-	return NULL != p;
+	return NULL != bpf_map_lookup_elem(conntracks, &rev_conn);
 }

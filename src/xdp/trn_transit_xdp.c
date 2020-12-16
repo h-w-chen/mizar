@@ -508,11 +508,10 @@ static __inline int trn_process_inner_ip(struct transit_packet *pkt)
 	__be64 tunnel_id = trn_vni_to_tunnel_id(pkt->geneve->vni);
 
 	// todo: add conn_track related logic properly
-	if (conntrack_is_reply_of_tracked_conn(&conn_track_cache, pkt->agent_ep_tunid, &pkt->inner_ipv4_tuple)) {
-		goto xdp_continue;
-	}
-
 	if (pkt->inner_ipv4_tuple.protocol == IPPROTO_TCP || pkt->inner_ipv4_tuple.protocol == IPPROTO_UDP) {
+		if (conntrack_is_reply_of_tracked_conn(&conn_track_cache, tunnel_id, &pkt->inner_ipv4_tuple))
+			goto xdp_continue;
+
 		if (is_ingress_enforced(tunnel_id, pkt->inner_ipv4_tuple.daddr)) {
 			if (0 != enforce_ingress_policy(tunnel_id, &pkt->inner_ipv4_tuple)) {
 				bpf_debug(

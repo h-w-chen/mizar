@@ -397,11 +397,9 @@ static __inline int trn_process_inner_ip(struct transit_packet *pkt)
 	}
 
 	// todo: add conn_track related logic properly
-	if (conntrack_is_reply_of_tracked_conn(&conn_track_cache, pkt->agent_ep_tunid, &pkt->inner_ipv4_tuple)) {
-		goto xdp_continue;
-	}
-
 	if (pkt->inner_ipv4_tuple.protocol == IPPROTO_TCP || pkt->inner_ipv4_tuple.protocol == IPPROTO_UDP) {
+		if (conntrack_is_reply_of_tracked_conn(&conn_track_cache, pkt->agent_ep_tunid, &pkt->inner_ipv4_tuple))
+			goto xdp_continue;
 
 		if (is_egress_enforced(pkt->agent_ep_tunid, pkt->inner_ip->saddr)) {
 			if (0 != enforce_egress_policy(pkt)) {
