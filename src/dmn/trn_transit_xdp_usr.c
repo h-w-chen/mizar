@@ -34,7 +34,6 @@
 #include "extern/linux/err.h"
 #include "trn_transit_xdp_usr.h"
 #include "trn_log.h"
-#include "shared_map_names.h"
 
 #define _SET_INNER_MAP(map)                                                    \
 	do {                                                                   \
@@ -52,18 +51,6 @@
 					     &stage->map##_ref_fd,             \
 					     md->map##_fd))                    \
 			goto error;                                            \
-	} while (0)
-
-#define _REUSE_MAP_IF_PINNED(map)						\
-	do {									\
-		int err_code;							\
-		if (0 != (err_code = _reuse_shared_map_if_exists(md->obj, 	\
-			#map, 							\
-			map##_path)))						\
-		{ 								\
-			TRN_LOG_INFO("failed to reuse shared map at %s, error code %d\n", map##_path, err_code); \
-			return 1;						\
-		}								\
 	} while (0)
 
 int trn_user_metadata_free(struct user_metadata_t *md)
@@ -117,30 +104,12 @@ int trn_bpf_maps_init(struct user_metadata_t *md)
 	md->ep_host_cache = bpf_map__next(md->ep_flow_host_cache, md->obj);
 	md->xdpcap_hook_map = bpf_map__next(md->ep_host_cache, md->obj);
 
-	md->eg_vsip_enforce_map = bpf_map__next(md->xdpcap_hook_map, md->obj);
-	md->eg_vsip_prim_map = bpf_map__next(md->eg_vsip_enforce_map, md->obj);
-	md->eg_vsip_ppo_map = bpf_map__next(md->eg_vsip_prim_map, md->obj);
-	md->eg_vsip_supp_map = bpf_map__next(md->eg_vsip_ppo_map, md->obj);
-	md->eg_vsip_except_map = bpf_map__next(md->eg_vsip_supp_map, md->obj);
-	md->ing_vsip_enforce_map = bpf_map__next(md->eg_vsip_except_map, md->obj);
-	md->ing_vsip_prim_map = bpf_map__next(md->ing_vsip_enforce_map, md->obj);
-	md->ing_vsip_ppo_map = bpf_map__next(md->ing_vsip_prim_map, md->obj);
-	md->ing_vsip_supp_map = bpf_map__next(md->ing_vsip_ppo_map, md->obj);
-	md->ing_vsip_except_map = bpf_map__next(md->ing_vsip_supp_map, md->obj);
-	md->conn_track_cache = bpf_map__next(md->ing_vsip_except_map, md->obj);
-
 	if (!md->networks_map || !md->vpc_map || !md->endpoints_map ||
 	    !md->port_map || !md->hosted_endpoints_iface_map ||
 	    !md->interface_config_map || !md->interfaces_map ||
 	    !md->fwd_flow_mod_cache || !md->rev_flow_mod_cache ||
 	    !md->ep_flow_host_cache || !md->ep_host_cache ||
-	    !md->xdpcap_hook_map || !md->jmp_table_map ||
-	    !md->ing_vsip_enforce_map || !md->ing_vsip_prim_map ||
-	    !md->ing_vsip_ppo_map || !md->ing_vsip_supp_map ||
-	    !md->ing_vsip_except_map || !md->eg_vsip_enforce_map ||
-	    !md->eg_vsip_prim_map || !md->eg_vsip_ppo_map ||
-	    !md->eg_vsip_supp_map || !md->eg_vsip_except_map ||
-	    !md->conn_track_cache) {
+	    !md->xdpcap_hook_map || !md->jmp_table_map) {
 		TRN_LOG_ERROR("Failure finding maps objects.");
 		return 1;
 	}
@@ -158,17 +127,6 @@ int trn_bpf_maps_init(struct user_metadata_t *md)
 	md->rev_flow_mod_cache_fd = bpf_map__fd(md->rev_flow_mod_cache);
 	md->ep_flow_host_cache_fd = bpf_map__fd(md->ep_flow_host_cache);
 	md->ep_host_cache_fd = bpf_map__fd(md->ep_host_cache);
-	md->eg_vsip_enforce_map_fd = bpf_map__fd(md->eg_vsip_enforce_map);
-	md->eg_vsip_prim_map_fd = bpf_map__fd(md->eg_vsip_prim_map);
-	md->eg_vsip_ppo_map_fd = bpf_map__fd(md->eg_vsip_ppo_map);
-	md->eg_vsip_supp_map_fd = bpf_map__fd(md->eg_vsip_supp_map);
-	md->eg_vsip_except_map_fd = bpf_map__fd(md->eg_vsip_except_map);
-	md->ing_vsip_enforce_map_fd = bpf_map__fd(md->ing_vsip_enforce_map);
-	md->ing_vsip_prim_map_fd = bpf_map__fd(md->ing_vsip_prim_map);
-	md->ing_vsip_ppo_map_fd = bpf_map__fd(md->ing_vsip_ppo_map);
-	md->ing_vsip_supp_map_fd = bpf_map__fd(md->ing_vsip_supp_map);
-	md->ing_vsip_except_map_fd = bpf_map__fd(md->ing_vsip_except_map);
-	md->conn_track_cache_fd = bpf_map__fd(md->conn_track_cache);
 
 	if (bpf_map__unpin(md->xdpcap_hook_map, md->pcapfile) == 0) {
 		TRN_LOG_INFO("unpin exiting pcap map file: %s", md->pcapfile);
@@ -180,19 +138,6 @@ int trn_bpf_maps_init(struct user_metadata_t *md)
 		TRN_LOG_ERROR("Failed to pin xdpcap map to %s", md->pcapfile);
 		return 1;
 	}
-
-	// pins the policy maps & conn_track map if not yet
-	bpf_map__pin(md->eg_vsip_enforce_map, eg_vsip_enforce_map_path);
-	bpf_map__pin(md->eg_vsip_prim_map, eg_vsip_prim_map_path);
-	bpf_map__pin(md->eg_vsip_ppo_map, eg_vsip_ppo_map_path);
-	bpf_map__pin(md->eg_vsip_supp_map, eg_vsip_supp_map_path);
-	bpf_map__pin(md->eg_vsip_except_map, eg_vsip_except_map_path);
-	bpf_map__pin(md->ing_vsip_enforce_map, ing_vsip_enforce_map_path);
-	bpf_map__pin(md->ing_vsip_prim_map, ing_vsip_prim_map_path);
-	bpf_map__pin(md->ing_vsip_ppo_map, ing_vsip_ppo_map_path);
-	bpf_map__pin(md->ing_vsip_supp_map, ing_vsip_supp_map_path);
-	bpf_map__pin(md->ing_vsip_except_map, ing_vsip_except_map_path);
-	bpf_map__pin(md->conn_track_cache, conn_track_cache_path);
 
 	return 0;
 }
@@ -373,17 +318,6 @@ int trn_add_prog(struct user_metadata_t *md, unsigned int prog_idx,
 	_SET_INNER_MAP(rev_flow_mod_cache);
 	_SET_INNER_MAP(ep_flow_host_cache);
 	_SET_INNER_MAP(ep_host_cache);
-	_SET_INNER_MAP(eg_vsip_enforce_map);
-	_SET_INNER_MAP(eg_vsip_prim_map);
-	_SET_INNER_MAP(eg_vsip_ppo_map);
-	_SET_INNER_MAP(eg_vsip_supp_map);
-	_SET_INNER_MAP(eg_vsip_except_map);
-	_SET_INNER_MAP(ing_vsip_enforce_map);
-	_SET_INNER_MAP(ing_vsip_prim_map);
-	_SET_INNER_MAP(ing_vsip_ppo_map);
-	_SET_INNER_MAP(ing_vsip_supp_map);
-	_SET_INNER_MAP(ing_vsip_except_map);
-	_SET_INNER_MAP(conn_track_cache);
 
 	/* Only one prog is supported */
 	bpf_object__for_each_program(prog, stage->obj)
@@ -420,17 +354,6 @@ int trn_add_prog(struct user_metadata_t *md, unsigned int prog_idx,
 	_UPDATE_INNER_MAP(rev_flow_mod_cache);
 	_UPDATE_INNER_MAP(ep_flow_host_cache);
 	_UPDATE_INNER_MAP(ep_host_cache);
-	_UPDATE_INNER_MAP(eg_vsip_enforce_map);
-	_UPDATE_INNER_MAP(eg_vsip_prim_map);
-	_UPDATE_INNER_MAP(eg_vsip_ppo_map);
-	_UPDATE_INNER_MAP(eg_vsip_supp_map);
-	_UPDATE_INNER_MAP(eg_vsip_except_map);
-	_UPDATE_INNER_MAP(ing_vsip_enforce_map);
-	_UPDATE_INNER_MAP(ing_vsip_prim_map);
-	_UPDATE_INNER_MAP(ing_vsip_ppo_map);
-	_UPDATE_INNER_MAP(ing_vsip_supp_map);
-	_UPDATE_INNER_MAP(ing_vsip_except_map);
-	_UPDATE_INNER_MAP(conn_track_cache);
 
 	return 0;
 error:
@@ -509,17 +432,6 @@ int trn_delete_vpc(struct user_metadata_t *md, struct vpc_key_t *vpckey)
 	return 0;
 }
 
-static int _reuse_shared_map_if_exists(struct bpf_object *pobj, const char *map_name, const char *pinned_file)
-{
-	int fd_map_pinned = bpf_obj_get(pinned_file);
-	if (fd_map_pinned >= 0) {
-		struct bpf_map *map = bpf_object__find_map_by_name(pobj, map_name);
-		if ( NULL == map) return -ENOENT;
-		if (!bpf_map__reuse_fd(map, fd_map_pinned)) return -EBADF;
-	}
-	return 0;
-}
-
 int trn_user_metadata_init(struct user_metadata_t *md, char *itf,
 			   char *kern_path, int xdp_flags)
 {
@@ -547,19 +459,6 @@ int trn_user_metadata_init(struct user_metadata_t *md, char *itf,
 
 	md->eth.ip = trn_get_interface_ipv4(md->ifindex);
 	md->eth.iface_index = md->ifindex;
-
-	// reuse the pinned maps, if any
-	_REUSE_MAP_IF_PINNED(eg_vsip_enforce_map);
-	_REUSE_MAP_IF_PINNED(eg_vsip_prim_map);
-	_REUSE_MAP_IF_PINNED(eg_vsip_ppo_map);
-	_REUSE_MAP_IF_PINNED(eg_vsip_supp_map);
-	_REUSE_MAP_IF_PINNED(eg_vsip_except_map);
-	_REUSE_MAP_IF_PINNED(ing_vsip_enforce_map);
-	_REUSE_MAP_IF_PINNED(ing_vsip_prim_map);
-	_REUSE_MAP_IF_PINNED(ing_vsip_ppo_map);
-	_REUSE_MAP_IF_PINNED(ing_vsip_supp_map);
-	_REUSE_MAP_IF_PINNED(ing_vsip_except_map);
-	_REUSE_MAP_IF_PINNED(conn_track_cache);
 
 	if (bpf_prog_load_xattr(&prog_load_attr, &md->obj, &md->prog_fd)) {
 		TRN_LOG_ERROR("Error loading bpf: %s", kern_path);
@@ -635,86 +534,4 @@ uint32_t trn_get_interface_ipv4(int itf_idx)
 	close(fd);
 
 	return ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr.s_addr;
-}
-
-int trn_update_transit_network_policy_map(int fd,
-					   struct vsip_cidr_t *ipcidr,
-					   __u64 bitmap)
-{
-	int err = bpf_map_update_elem(fd, ipcidr, &bitmap, 0);
-	if (err) {
-		TRN_LOG_ERROR("Store ingress CIDR map failed (err:%d) for ip address 0x%x wit remote cidr 0x%x / %d ",
-			err, ipcidr->local_ip, ipcidr->remote_ip, ipcidr->prefixlen);
-		return 1;
-	}
-	return 0;
-}
-
-int trn_delete_transit_network_policy_map(int fd,
-					   struct vsip_cidr_t *ipcidr)
-{
-	int err = bpf_map_delete_elem(fd, ipcidr);
-	if (err) {
-		TRN_LOG_ERROR("Delete ingress CIDR map failed (err:%d) for ip address 0x%x wit remote cidr 0x%x / %d ",
-			err, ipcidr->local_ip, ipcidr->remote_ip, ipcidr->prefixlen);
-		return 1;
-	}
-
-	return 0;
-}
-
-int trn_update_transit_network_policy_enforcement_map(struct user_metadata_t *md,
-						      struct vsip_enforce_t *local,
-						      __u8 isenforce)
-{
-	int err = bpf_map_update_elem(md->ing_vsip_enforce_map_fd, local, &isenforce, 0);
-
-	if (err) {
-		TRN_LOG_ERROR("Update Enforcement ingress map failed (err:%d).",
-				err);
-		return 1;
-	}
-
-	return 0;
-}
-
-int trn_delete_transit_network_policy_enforcement_map(struct user_metadata_t *md,
-						      struct vsip_enforce_t *local)
-{
-	int err = bpf_map_delete_elem(md->ing_vsip_enforce_map_fd, local);
-
-	if (err) {
-		TRN_LOG_ERROR("Delete Enforcement ingress map failed (err:%d).",
-				err);
-		return 1;
-	}
-
-	return 0;
-}
-
-int trn_update_transit_network_policy_protocol_port_map(struct user_metadata_t *md,
-						        struct vsip_ppo_t *policy,
-						        __u64 bitmap)
-{
-	int err = bpf_map_update_elem(md->ing_vsip_ppo_map_fd, policy, &bitmap, 0);
-	if (err) {
-		TRN_LOG_ERROR("Update Protocol-Port ingress map failed (err:%d) for ip address 0x%x with protocol %d and port %d. \n",
-				err, policy->local_ip, policy->proto, policy->port);
-		return 1;
-	}
-	return 0;
-}
-
-int trn_delete_transit_network_policy_protocol_port_map(struct user_metadata_t *md,
-						        struct vsip_ppo_t *policy)
-{
-	int err = bpf_map_delete_elem(md->ing_vsip_ppo_map_fd, policy);
-
-	if (err) {
-		TRN_LOG_ERROR("Delete Protocol-Port ingress map failed (err:%d).for ip address 0x%x with protocol %d and port %d. \n",
-				err, policy->local_ip, policy->proto, policy->port);
-		return 1;
-	}
-
-	return 0;
 }

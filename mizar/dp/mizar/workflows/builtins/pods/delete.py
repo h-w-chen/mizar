@@ -22,11 +22,9 @@
 import logging
 from mizar.common.workflow import *
 from mizar.dp.mizar.operators.endpoints.endpoints_operator import *
-from mizar.networkpolicy.networkpolicy_util import *
 logger = logging.getLogger()
 
 endpoints_opr = EndpointOperator()
-networkpolicy_util = NetworkPolicyUtil()
 
 
 class k8sPodDelete(WorkflowTask):
@@ -37,13 +35,7 @@ class k8sPodDelete(WorkflowTask):
 
     def run(self):
         logger.info("Run {task}".format(task=self.__class__.__name__))
-
         eps = endpoints_opr.store.get_eps_in_pod(self.param.name)
-
-        endpoints_opr.store.pod_names_to_be_ignored_by_networkpolicy.add(self.param.name)
-        networkpolicy_util.handle_pod_delete_for_networkpolicy(self.param.name, self.param.namespace, self.param.diff, eps)
-        endpoints_opr.store.pod_names_to_be_ignored_by_networkpolicy.remove(self.param.name)
-
         logger.info("Deleting Pod {}".format(self.param.name))
 
         for ep in eps.values():

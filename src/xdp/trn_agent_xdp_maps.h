@@ -29,6 +29,7 @@
 #include "extern/xdpcap_hook.h"
 
 #include "trn_datamodel.h"
+
 struct bpf_map_def SEC("maps") jmp_table = {
 	.type = BPF_MAP_TYPE_PROG_ARRAY,
 	.key_size = sizeof(__u32),
@@ -100,8 +101,3 @@ struct bpf_map_def SEC("maps") ep_host_cache_ref = {
 	.map_flags = 0,
 };
 BPF_ANNOTATE_KV_PAIR(ep_host_cache_ref, int, __u32);
-
-// DONOT change the location of this inlude for now.
-// pinned maps for egress policy checks (shared by transit agent xdp progs)
-// and the global conn_track map
-#include "shared_map_defs.h"

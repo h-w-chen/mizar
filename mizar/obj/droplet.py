@@ -25,9 +25,7 @@ from mizar.common.rpc import TrnRpc
 from mizar.common.constants import *
 from mizar.common.common import *
 from mizar.common.common import run_cmd
-from mizar.get_interface import get_itf
 
-net_itf = get_itf()
 logger = logging.getLogger()
 
 
@@ -39,7 +37,7 @@ class Droplet(object):
         self.store = opr_store
         self.ip = ""
         self.mac = ""
-        self.phy_itf = net_itf
+        self.phy_itf = 'eth0'
         self.status = OBJ_STATUS.droplet_status_init
         self.known_substrates = {}
         self.known_bouncers = {}

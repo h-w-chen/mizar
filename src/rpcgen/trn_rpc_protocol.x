@@ -160,53 +160,6 @@ struct rpc_trn_ebpf_prog_stage_t {
        rpc_trn_pipeline_stage stage;
 };
 
-/* Defines a network policy table entry */
-struct rpc_trn_vsip_cidr_t {
-       string interface<20>;
-       uint64_t tunid;
-       uint32_t local_ip;
-       uint32_t cidr_ip;
-       uint32_t cidr_prefixlen;
-       int cidr_type;
-       uint64_t bit_val;
-};
-
-/* Defines a network policy table key */
-struct rpc_trn_vsip_cidr_key_t {
-       string interface<20>;
-       uint64_t tunid;
-       uint32_t local_ip;
-       uint32_t cidr_ip;
-       uint32_t cidr_prefixlen;
-       int cidr_type;
-};
-
-/* Defines a network policy enforcement table key */
-struct rpc_trn_vsip_enforce_t {
-       string interface<20>;
-       uint64_t tunid;
-       uint32_t local_ip;
-};
-
-/* Defines a network policy protocol port table entry */
-struct rpc_trn_vsip_ppo_t {
-       string interface<20>;
-       uint64_t tunid;
-       uint32_t local_ip;
-       uint8_t proto;
-       uint16_t port;
-       uint64_t bit_val;
-};
-
-/* Defines a network policy protocol port table key */
-struct rpc_trn_vsip_ppo_key_t {
-       string interface<20>;
-       uint64_t tunid;
-       uint32_t local_ip;
-       uint8_t proto;
-       uint16_t port;
-};
-
 /*----- Protocol. -----*/
 
 program RPC_TRANSIT_REMOTE_PROTOCOL {
@@ -238,20 +191,6 @@ program RPC_TRANSIT_REMOTE_PROTOCOL {
 
                 int LOAD_TRANSIT_XDP_PIPELINE_STAGE(rpc_trn_ebpf_prog_t) = 21;
                 int UNLOAD_TRANSIT_XDP_PIPELINE_STAGE(rpc_trn_ebpf_prog_stage_t) = 22;
-
-                int UPDATE_TRANSIT_NETWORK_POLICY(rpc_trn_vsip_cidr_t) = 23;
-                int DELETE_TRANSIT_NETWORK_POLICY(rpc_trn_vsip_cidr_key_t) = 24;
-                int UPDATE_TRANSIT_NETWORK_POLICY_ENFORCEMENT(rpc_trn_vsip_enforce_t) = 25;
-                int DELETE_TRANSIT_NETWORK_POLICY_ENFORCEMENT(rpc_trn_vsip_enforce_t) = 26;
-                int UPDATE_TRANSIT_NETWORK_POLICY_PROTOCOL_PORT(rpc_trn_vsip_ppo_t) = 27;
-                int DELETE_TRANSIT_NETWORK_POLICY_PROTOCOL_PORT(rpc_trn_vsip_ppo_key_t) = 28;
-                int UPDATE_AGENT_NETWORK_POLICY(rpc_trn_vsip_cidr_t) = 29;
-                int DELETE_AGENT_NETWORK_POLICY(rpc_trn_vsip_cidr_key_t) = 30;
-                int UPDATE_AGENT_NETWORK_POLICY_ENFORCEMENT(rpc_trn_vsip_enforce_t) = 31;
-                int DELETE_AGENT_NETWORK_POLICY_ENFORCEMENT(rpc_trn_vsip_enforce_t) = 32;
-                int UPDATE_AGENT_NETWORK_POLICY_PROTOCOL_PORT(rpc_trn_vsip_ppo_t) = 33;
-                int DELETE_AGENT_NETWORK_POLICY_PROTOCOL_PORT(rpc_trn_vsip_ppo_key_t) = 34;
-
           } = 1;
 
 } =  0x20009051;

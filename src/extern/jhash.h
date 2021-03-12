@@ -4,7 +4,6 @@
  * can compile it into valid sequence of bpf instructions
  */
 
-__ALWAYS_INLINE__
 static inline __u32 rol32(__u32 word, unsigned int shift)
 {
   return (word << shift) | (word >> ((-shift) & 31));
@@ -35,7 +34,6 @@ static inline __u32 rol32(__u32 word, unsigned int shift)
 
 typedef unsigned int u32;
 
-__ALWAYS_INLINE__
 static inline u32 jhash(const void *key, u32 length, u32 initval)
 {
   u32 a, b, c;
@@ -72,7 +70,6 @@ static inline u32 jhash(const void *key, u32 length, u32 initval)
   return c;
 }
 
-__ALWAYS_INLINE__
 static inline u32 __jhash_nwords(u32 a, u32 b, u32 c, u32 initval)
 {
   a += initval;
@@ -82,7 +79,6 @@ static inline u32 __jhash_nwords(u32 a, u32 b, u32 c, u32 initval)
   return c;
 }
 
-__ALWAYS_INLINE__
 static inline u32 jhash_2words(u32 a, u32 b, u32 initval)
 {
   return __jhash_nwords(a, b, 0, initval + JHASH_INITVAL + (2 << 2));

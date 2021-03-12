@@ -27,7 +27,6 @@ from mizar.dp.mizar.operators.endpoints.endpoints_operator import *
 from mizar.dp.mizar.operators.vpcs.vpcs_operator import *
 from mizar.dp.mizar.operators.nets.nets_operator import *
 from mizar.common.constants import *
-from mizar.networkpolicy.networkpolicy_util import *
 
 logger = logging.getLogger()
 
@@ -35,7 +34,6 @@ droplet_opr = DropletOperator()
 endpoint_opr = EndpointOperator()
 vpc_opr = VpcOperator()
 net_opr = NetOperator()
-networkpolicy_util = NetworkPolicyUtil()
 
 
 class k8sPodCreate(WorkflowTask):
@@ -49,7 +47,6 @@ class k8sPodCreate(WorkflowTask):
 
         if "hostIP" not in self.param.body['status']:
             self.raise_temporary_error("Pod spec not ready.")
-
         spec = {
             'hostIP': self.param.body['status']['hostIP'],
             'name': self.param.name,
@@ -61,12 +58,10 @@ class k8sPodCreate(WorkflowTask):
             'phase': self.param.body['status']['phase'],
             'interfaces': [{'name': 'eth0'}]
         }
+        logger.info("Pod spec {}".format(spec))
 
         spec['vni'] = vpc_opr.store_get(spec['vpc']).vni
         spec['droplet'] = droplet_opr.store_get_by_ip(spec['hostIP'])
-        # Preexisting pods triggered when droplet objects are not yet created.
-        if not spec['droplet']:
-            self.raise_temporary_error("Droplet not yet created.")
 
         if self.param.extra:
             spec['type'] = COMPUTE_PROVIDER.arktos
@@ -91,12 +86,6 @@ class k8sPodCreate(WorkflowTask):
                 configs = json.loads(net_config)
                 spec['interfaces'] = configs
 
-        n = net_opr.store.get_net(spec['subnet'])
-        ip = n.allocate_ip()
-        spec['ip'] = ip
-
-        logger.info("Pod spec {}".format(spec))
-
         # make sure not to trigger init or create simple endpoint
         # if Arktos network is already marked ready (Needs to confirm with Arktos team)
         # if spec['type'] ==  COMPUTE_PROVIDER.arktos && spec['readiness'] == true:
@@ -104,9 +93,11 @@ class k8sPodCreate(WorkflowTask):
         #     return
 
         if spec['phase'] != 'Pending':
-            networkpolicy_util.handle_pod_change_for_networkpolicy(self.param.name, self.param.namespace, self.param.diff)
             self.finalize()
             return
+        # Preexisting pods triggered when droplet objects are not yet created.
+        if not spec['droplet']:
+            self.raise_temporary_error("Droplet not yet created.")
 
         # Init all interfaces on the host
         interfaces = endpoint_opr.init_simple_endpoint_interfaces(
@@ -116,7 +107,5 @@ class k8sPodCreate(WorkflowTask):
                 "Endpoint {} already exists!".format(spec["name"]))
         # Create the corresponding simple endpoint objects
         endpoint_opr.create_simple_endpoints(interfaces, spec)
-
-        networkpolicy_util.handle_pod_change_for_networkpolicy(self.param.name, self.param.namespace, self.param.diff)
 
         self.finalize()

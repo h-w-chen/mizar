@@ -45,9 +45,6 @@
 #define TRANSITLOGNAME "transit"
 #define TRN_MAX_ITF 265
 #define TRN_MAX_VETH 2048
-#define PRIMARY 0
-#define SUPPLEMENTARY 1
-#define EXCEPTION 2
 
 void rpc_transit_remote_protocol_1(struct svc_req *rqstp,
 				   register SVCXPRT *transp);
@@ -103,7 +100,7 @@ void trn_vif_table_delete(char *itf)
 int *update_vpc_1_svc(rpc_trn_vpc_t *vpc, struct svc_req *rqstp)
 {
 	UNUSED(rqstp);
-	static int result = -1;
+	static int result;
 	result = 0;
 	int rc;
 	char *itf = vpc->interface;
@@ -153,7 +150,7 @@ error:
 int *update_net_1_svc(rpc_trn_network_t *net, struct svc_req *rqstp)
 {
 	UNUSED(rqstp);
-	static int result = -1;
+	static int result;
 	result = 0;
 	int rc;
 	char *itf = net->interface;
@@ -212,7 +209,7 @@ error:
 int *update_ep_1_svc(rpc_trn_endpoint_t *ep, struct svc_req *rqstp)
 {
 	UNUSED(rqstp);
-	static int result = -1;
+	static int result;
 	result = 0;
 	int rc;
 	char *itf = ep->interface;
@@ -287,7 +284,7 @@ error:
 int *update_port_1_svc(rpc_trn_port_t *port, struct svc_req *rqstp)
 {
 	UNUSED(rqstp);
-	static int result = -1;
+	static int result;
 	result = 0;
 	int rc;
 	char *itf = port->interface;
@@ -331,7 +328,7 @@ error:
 int *delete_vpc_1_svc(rpc_trn_vpc_key_t *argp, struct svc_req *rqstp)
 {
 	UNUSED(rqstp);
-	static int result = -1;
+	static int result;
 	result = 0;
 	int rc;
 	struct vpc_key_t vpckey;
@@ -370,7 +367,7 @@ int *delete_net_1_svc(rpc_trn_network_key_t *argp, struct svc_req *rqstp)
 {
 	UNUSED(rqstp);
 
-	static int result = -1;
+	static int result;
 	result = 0;
 	int rc;
 	struct network_key_t netkey;
@@ -413,7 +410,7 @@ error:
 int *delete_ep_1_svc(rpc_trn_endpoint_key_t *argp, struct svc_req *rqstp)
 {
 	UNUSED(rqstp);
-	static int result = -1;
+	static int result;
 	result = 0;
 	int rc;
 	struct endpoint_key_t epkey;
@@ -605,7 +602,7 @@ error:
 int *load_transit_xdp_1_svc(rpc_trn_xdp_intf_t *xdp_intf, struct svc_req *rqstp)
 {
 	UNUSED(rqstp);
-	static int result = -1;
+	static int result;
 
 	int rc;
 	bool unload_error = false;
@@ -678,7 +675,7 @@ error:
 int *unload_transit_xdp_1_svc(rpc_intf_t *argp, struct svc_req *rqstp)
 {
 	UNUSED(rqstp);
-	static int result = -1;
+	static int result;
 	int rc;
 	char *itf = argp->interface;
 
@@ -713,7 +710,7 @@ int *load_transit_agent_xdp_1_svc(rpc_trn_xdp_intf_t *xdp_intf,
 				  struct svc_req *rqstp)
 {
 	UNUSED(rqstp);
-	static int result = -1;
+	static int result;
 
 	int rc;
 	bool unload_error = false;
@@ -777,7 +774,7 @@ error:
 int *unload_transit_agent_xdp_1_svc(rpc_intf_t *argp, struct svc_req *rqstp)
 {
 	UNUSED(rqstp);
-	static int result = -1;
+	static int result;
 	int rc;
 	char *itf = argp->interface;
 
@@ -813,7 +810,7 @@ error:
 int *update_agent_ep_1_svc(rpc_trn_endpoint_t *ep, struct svc_req *rqstp)
 {
 	UNUSED(rqstp);
-	static int result = -1;
+	static int result;
 	result = 0;
 	int rc;
 	char *itf = ep->interface;
@@ -892,7 +889,7 @@ error:
 int *delete_agent_ep_1_svc(rpc_trn_endpoint_key_t *argp, struct svc_req *rqstp)
 {
 	UNUSED(rqstp);
-	static int result = -1;
+	static int result;
 	result = 0;
 	struct endpoint_key_t epkey;
 	int rc;
@@ -995,7 +992,7 @@ int *update_agent_md_1_svc(rpc_trn_agent_metadata_t *agent_md,
 			   struct svc_req *rqstp)
 {
 	UNUSED(rqstp);
-	static int result = -1;
+	static int result;
 	int rc;
 	char *itf = agent_md->interface;
 
@@ -1078,7 +1075,7 @@ int *delete_agent_md_1_svc(rpc_intf_t *argp, struct svc_req *rqstp)
 {
 	UNUSED(rqstp);
 
-	static int result = -1;
+	static int result;
 	result = 0;
 	int rc;
 
@@ -1172,7 +1169,7 @@ int *load_transit_xdp_pipeline_stage_1_svc(rpc_trn_ebpf_prog_t *argp,
 {
 	UNUSED(rqstp);
 
-	static int result = -1;
+	static int result;
 	int rc;
 	struct user_metadata_t *md;
 	char *prog_path = argp->xdp_path;
@@ -1219,7 +1216,7 @@ int *unload_transit_xdp_pipeline_stage_1_svc(rpc_trn_ebpf_prog_stage_t *argp,
 					     struct svc_req *rqstp)
 {
 	UNUSED(rqstp);
-	static int result = -1;
+	static int result;
 	int rc;
 	struct user_metadata_t *md;
 	unsigned int prog_idx = argp->stage;
@@ -1251,529 +1248,6 @@ int *unload_transit_xdp_pipeline_stage_1_svc(rpc_trn_ebpf_prog_stage_t *argp,
 		TRN_LOG_ERROR("Failed to remove XDP stage %d for interface %s",
 			      prog_idx, argp->interface);
 		result = RPC_TRN_ERROR;
-		goto error;
-	}
-
-	result = 0;
-	return &result;
-
-error:
-	return &result;
-}
-
-int *update_transit_network_policy_1_svc(rpc_trn_vsip_cidr_t *policy, struct svc_req *rqstp)
-{
-	UNUSED(rqstp);
-	static int result = -1;
-	int map_fd = -1;
-	int rc;
-	char *itf = policy->interface;
-	int type = policy->cidr_type;
-	struct vsip_cidr_t cidr;
-
-	TRN_LOG_INFO("update_transit_network_policy_1_svc service");
-
-	struct user_metadata_t *md = trn_itf_table_find(itf);
-	if (!md) {
-		TRN_LOG_ERROR("Cannot find interface metadata for %s", itf);
-		result = RPC_TRN_ERROR;
-		goto error;
-	}
-
-	cidr.tunnel_id = policy->tunid;
-	// cidr-related maps have tunnel-id(64 bits),
-	// local-ip(32 bits) prior to destination cidr;
-	// hence the final prefix length is 64+32+{cidr prefix}
-	cidr.prefixlen = policy->cidr_prefixlen + 96;
-	cidr.local_ip = policy->local_ip;
-	cidr.remote_ip = policy->cidr_ip;
-	TRN_LOG_INFO("policy: tunnel_id  %ld; local ip  0x%x; cidr ip  0x%x\n", 
-			policy->tunid, policy->local_ip, policy->cidr_ip);
-
-	if (type == PRIMARY) {
-		map_fd = md->ing_vsip_prim_map_fd;
-	}else if (type == SUPPLEMENTARY){
-		map_fd = md->ing_vsip_supp_map_fd;
-	}else if (type == EXCEPTION){
-		map_fd = md->ing_vsip_except_map_fd;
-	}else {
-		TRN_LOG_ERROR("Wrong network policy CIDR type. \n");
-		result = RPC_TRN_ERROR;
-		goto error;
-	}
-
-	rc = trn_update_transit_network_policy_map(map_fd, &cidr, policy->bit_val);
-
-	if (rc != 0) {
-		TRN_LOG_ERROR("Failure updating transit network policy map cidr.");
-		result = RPC_TRN_FATAL;
-		goto error;
-	}
-
-	result = 0;
-	return &result;
-
-error:
-	return &result;
-}
-
-int *update_agent_network_policy_1_svc(rpc_trn_vsip_cidr_t *policy, struct svc_req *rqstp)
-{
-	UNUSED(rqstp);
-	static int result = -1;
-	int rc;
-	int map_fd = -1;
-	char *itf = policy->interface;
-	int type = policy->cidr_type;
-	struct vsip_cidr_t cidr;
-
-	TRN_LOG_INFO("update_agent_network_policy_1_svc service");
-
-	struct agent_user_metadata_t *md = trn_vif_table_find(itf);
-	if (!md) {
-		TRN_LOG_ERROR("Cannot find interface metadata for %s", itf);
-		result = RPC_TRN_ERROR;
-		goto error;
-	}
-
-	cidr.tunnel_id = policy->tunid;
-	// cidr-related maps have tunnel-id(64 bits),
-	// local-ip(32 bits) prior to destination cidr;
-	// hence the final prefix length is 64+32+{cidr prefix}
-	cidr.prefixlen = policy->cidr_prefixlen + 96;
-	cidr.local_ip = policy->local_ip;
-	cidr.remote_ip = policy->cidr_ip;
-	TRN_LOG_INFO("policy: tunnel_id  %ld; local ip  0x%x; cidr ip  0x%x \n", 
-			policy->tunid, policy->local_ip, policy->cidr_ip);
-
-	if (type == PRIMARY) {
-		map_fd = md->eg_vsip_prim_map_fd;
-	}else if (type == SUPPLEMENTARY){
-		map_fd = md->eg_vsip_supp_map_fd;
-	}else if (type == EXCEPTION){
-		map_fd = md->eg_vsip_except_map_fd;
-	}else {
-		TRN_LOG_ERROR("Wrong network policy CIDR type. \n");
-		result = RPC_TRN_ERROR;
-		goto error;
-	}
-
-	rc = trn_update_agent_network_policy_map(map_fd, &cidr, policy->bit_val);
-	if (rc != 0) {
-		TRN_LOG_ERROR("Failure updating agent network policy map cidr.");
-		result = RPC_TRN_FATAL;
-		goto error;
-	}
-
-	result = 0;
-	return &result;
-
-error:
-	return &result;
-}
-
-int *delete_transit_network_policy_1_svc(rpc_trn_vsip_cidr_key_t *policy_key, struct svc_req *rqstp)
-{
-	UNUSED(rqstp);
-	static int result = -1;
-	int rc;
-	int map_fd = -1;
-	char *itf = policy_key->interface;
-	int type = policy_key->cidr_type;
-	struct vsip_cidr_t cidr;
-
-	TRN_LOG_INFO("delete_transit_network_policy_1_svc service");
-
-	struct user_metadata_t *md = trn_itf_table_find(itf);
-	if (!md) {
-		TRN_LOG_ERROR("Cannot find interface metadata for %s", itf);
-		result = RPC_TRN_ERROR;
-		goto error;
-	}
-
-	cidr.tunnel_id = policy_key->tunid;
-	// cidr-related maps have tunnel-id(64 bits),
-	// local-ip(32 bits) prior to destination cidr;
-	// hence the final prefix length is 64+32+{cidr prefix}
-	cidr.prefixlen = policy_key->cidr_prefixlen + 96;
-	cidr.local_ip = policy_key->local_ip;
-	cidr.remote_ip = policy_key->cidr_ip;
-	TRN_LOG_INFO("policy: tunnel_id  %ld; local ip  0x%x; cidr ip  0x%x\n", 
-			policy_key->tunid, policy_key->local_ip, policy_key->cidr_ip);
-
-	if (type == PRIMARY) {
-		map_fd = md->ing_vsip_prim_map_fd;
-	}else if (type == SUPPLEMENTARY){
-		map_fd = md->ing_vsip_supp_map_fd;
-	}else if (type == EXCEPTION){
-		map_fd = md->ing_vsip_except_map_fd;
-	}else {
-		TRN_LOG_ERROR("Wrong network policy CIDR type. \n");
-		result = RPC_TRN_ERROR;
-		goto error;
-	}
-
-	rc = trn_delete_transit_network_policy_map(map_fd, &cidr);
-
-	if (rc != 0) {
-		TRN_LOG_ERROR("Failure deleting transit network policy map cidr");
-		result = RPC_TRN_FATAL;
-		goto error;
-	}
-
-	result = 0;
-	return &result;
-
-error:
-	return &result;
-}
-
-int *delete_agent_network_policy_1_svc(rpc_trn_vsip_cidr_key_t *policy_key, struct svc_req *rqstp)
-{
-	UNUSED(rqstp);
-	static int result = -1;
-	int rc = -1;
-	int map_fd = -1;
-	char *itf = policy_key->interface;
-	int type = policy_key->cidr_type;
-	TRN_LOG_INFO("delete_agent_network_policy_1_svc service");
-
-	struct vsip_cidr_t cidr;
-	struct agent_user_metadata_t *md = trn_vif_table_find(itf);
-	if (!md) {
-		TRN_LOG_ERROR("Cannot find interface metadata for %s", itf);
-		result = RPC_TRN_ERROR;
-		goto error;
-	}
-
-	cidr.tunnel_id = policy_key->tunid;
-	// cidr-related maps have tunnel-id(64 bits),
-	// local-ip(32 bits) prior to destination cidr;
-	// hence the final prefix length is 64+32+{cidr prefix}
-	cidr.prefixlen = policy_key->cidr_prefixlen + 96;
-	cidr.local_ip = policy_key->local_ip;
-	cidr.remote_ip = policy_key->cidr_ip;
-	TRN_LOG_INFO("policy: tunnel_id  %ld; local ip  0x%x; cidr ip  0x%x\n", 
-			policy_key->tunid, policy_key->local_ip, policy_key->cidr_ip);
-
-	if (type == PRIMARY) {
-		map_fd = md->eg_vsip_prim_map_fd;
-	}else if (type == SUPPLEMENTARY){
-		map_fd = md->eg_vsip_supp_map_fd;
-	}else if (type == EXCEPTION){
-		map_fd = md->eg_vsip_except_map_fd;
-	}else {
-		TRN_LOG_ERROR("Wrong network policy CIDR type. \n");
-		result = RPC_TRN_ERROR;
-		goto error;
-	}
-
-	rc = trn_delete_agent_network_policy_map(map_fd, &cidr);
-
-	if (rc != 0) {
-		TRN_LOG_ERROR("Failure deleting agent network policy map cidr");
-		result = RPC_TRN_FATAL;
-		goto error;
-	}
-
-	result = 0;
-	return &result;
-
-error:
-	return &result;
-}
-
-int *update_transit_network_policy_enforcement_1_svc(rpc_trn_vsip_enforce_t *policy, struct svc_req *rqstp)
-{
-	UNUSED(rqstp);
-	static int result = -1;
-	int rc;
-	char *itf = policy->interface;
-	struct vsip_enforce_t enforce;
-	__u8 val;
-
-	TRN_LOG_INFO("update_transit_network_policy_enforcement_1_svc service");
-
-	struct user_metadata_t *md = trn_itf_table_find(itf);
-	if (!md) {
-		TRN_LOG_ERROR("Cannot find interface metadata for %s", itf);
-		result = RPC_TRN_ERROR;
-		goto error;
-	}
-
-	enforce.tunnel_id = policy->tunid;
-	enforce.local_ip = policy->local_ip;
-	val = 1;
-
-	rc = trn_update_transit_network_policy_enforcement_map(md, &enforce, val);
-
-	if (rc != 0) {
-		TRN_LOG_ERROR("Failure updating transit network policy enforcement map ip address: 0x%x, for interface %s",
-					policy->local_ip, policy->interface);
-		result = RPC_TRN_FATAL;
-		goto error;
-	}
-
-	result = 0;
-	return &result;
-
-error:
-	return &result;
-}
-
-int *update_agent_network_policy_enforcement_1_svc(rpc_trn_vsip_enforce_t *policy, struct svc_req *rqstp)
-{
-	UNUSED(rqstp);
-	static int result = -1;
-	int rc;
-	char *itf = policy->interface;
-	struct vsip_enforce_t enforce;
-	__u8 val;
-
-	TRN_LOG_INFO("update_agent_network_policy_enforcement_1_svc service");
-
-	struct agent_user_metadata_t *md = trn_vif_table_find(itf);
-	if (!md) {
-		TRN_LOG_ERROR("Cannot find interface metadata for %s", itf);
-		result = RPC_TRN_ERROR;
-		goto error;
-	}
-
-	enforce.tunnel_id = policy->tunid;
-	enforce.local_ip = policy->local_ip;
-	val = 1;
-
-	rc = trn_update_agent_network_policy_enforcement_map(md, &enforce, val);
-
-	if (rc != 0) {
-		TRN_LOG_ERROR("Failure updating agnet network policy enforcement map ip address: 0x%x, for interface %s",
-					policy->local_ip, policy->interface);
-		result = RPC_TRN_FATAL;
-		goto error;
-	}
-
-	result = 0;
-	return &result;
-
-error:
-	return &result;
-}
-
-int *delete_transit_network_policy_enforcement_1_svc(rpc_trn_vsip_enforce_t *policy, struct svc_req *rqstp)
-{
-	UNUSED(rqstp);
-	static int result;
-	int rc;
-	char *itf = policy->interface;
-	struct vsip_enforce_t enf;
-
-	TRN_LOG_INFO("delete_transit_network_policy_enforcement_1_svc service");
-
-	struct user_metadata_t *md = trn_itf_table_find(itf);
-	if (!md) {
-		TRN_LOG_ERROR("Cannot find interface metadata for %s", itf);
-		result = RPC_TRN_ERROR;
-		goto error;
-	}
-
-	enf.tunnel_id = policy->tunid;
-	enf.local_ip = policy->local_ip;
-
-	rc = trn_delete_transit_network_policy_enforcement_map(md, &enf);
-
-	if (rc != 0) {
-		TRN_LOG_ERROR("Failure deleting transit network policy enforcement map ip address: 0x%x, for interface %s",
-					policy->local_ip, policy->interface);
-		result = RPC_TRN_FATAL;
-		goto error;
-	}
-
-	result = 0;
-	return &result;
-
-error:
-	return &result;
-}
-
-int *delete_agent_network_policy_enforcement_1_svc(rpc_trn_vsip_enforce_t *policy, struct svc_req *rqstp)
-{
-	UNUSED(rqstp);
-	static int result;
-	int rc;
-	char *itf = policy->interface;
-	struct vsip_enforce_t enf;
-
-	TRN_LOG_INFO("delete_agent_network_policy_enforcement_1_svc service");
-
-	struct agent_user_metadata_t *md = trn_vif_table_find(itf);
-	if (!md) {
-		TRN_LOG_ERROR("Cannot find interface metadata for %s", itf);
-		result = RPC_TRN_ERROR;
-		goto error;
-	}
-
-	enf.tunnel_id = policy->tunid;
-	enf.local_ip = policy->local_ip;
-
-	rc = trn_delete_agent_network_policy_enforcement_map(md, &enf);
-
-	if (rc != 0) {
-		TRN_LOG_ERROR("Failure deleting agent network policy enforcement map ip address: 0x%x, for interface %s",
-					policy->local_ip, policy->interface);
-		result = RPC_TRN_FATAL;
-		goto error;
-	}
-
-	result = 0;
-	return &result;
-
-error:
-	return &result;
-}
-
-int *update_transit_network_policy_protocol_port_1_svc(rpc_trn_vsip_ppo_t *ppo, struct svc_req *rqstp)
-{
-	UNUSED(rqstp);
-	static int result = -1;
-	int rc;
-	char *itf = ppo->interface;
-	
-	TRN_LOG_INFO("update_transit_network_policy_protocol_port_1_svc service");
-	struct vsip_ppo_t policy;
-	struct user_metadata_t *md = trn_itf_table_find(itf);
-	if (!md) {
-		TRN_LOG_ERROR("Cannot find interface metadata for %s", itf);
-		result = RPC_TRN_ERROR;
-		goto error;
-	}
-
-	policy.tunnel_id = ppo->tunid;
-	policy.local_ip = ppo->local_ip;
-	policy.proto = ppo->proto;
-	policy.port = ppo->port;
-	TRN_LOG_INFO("ppo: tunnel_id  %ld; local ip  0x%x; protocol  %d; port  %d\n", 
-				ppo->tunid, ppo->local_ip, ppo->proto, ppo->port);
-
-	rc = trn_update_transit_network_policy_protocol_port_map(md, &policy, ppo->bit_val);
-
-	if (rc != 0) {
-		TRN_LOG_ERROR("Failure updating transit network policy protocol port map\n");
-		result = RPC_TRN_FATAL;
-		goto error;
-	}
-
-	result = 0;
-	return &result;
-
-error:
-	return &result;
-}
-
-int *update_agent_network_policy_protocol_port_1_svc(rpc_trn_vsip_ppo_t *ppo, struct svc_req *rqstp)
-{
-	UNUSED(rqstp);
-	static int result = -1;
-	int rc;
-	char *itf = ppo->interface;
-
-	TRN_LOG_INFO("update_agent_network_policy_protocol_port_1_svc service");
-	struct vsip_ppo_t policy;
-	struct agent_user_metadata_t *md = trn_vif_table_find(itf);
-	if (!md) {
-		TRN_LOG_ERROR("Cannot find interface metadata for %s", itf);
-		result = RPC_TRN_ERROR;
-		goto error;
-	}
-
-	policy.tunnel_id = ppo->tunid;
-	policy.local_ip = ppo->local_ip;
-	policy.proto = ppo->proto;
-	policy.port = ppo->port;
-	TRN_LOG_INFO("ppo: tunnel_id  %ld; local ip  0x%x; protocol  %d; port  %d\n", 
-				ppo->tunid, ppo->local_ip, ppo->proto, ppo->port);
-
-	rc = trn_update_agent_network_policy_protocol_port_map(md, &policy, ppo->bit_val);
-
-	if (rc != 0) {
-		TRN_LOG_ERROR("Failure updating agent network policy protocol port map\n");
-		result = RPC_TRN_FATAL;
-		goto error;
-	}
-
-	result = 0;
-	return &result;
-
-error:
-	return &result;
-}
-
-int *delete_transit_network_policy_protocol_port_1_svc(rpc_trn_vsip_ppo_key_t *ppo_key, struct svc_req *rqstp)
-{
-	UNUSED(rqstp);
-	static int result = -1;
-	int rc;
-	char *itf = ppo_key->interface;
-	
-	TRN_LOG_INFO("delete_transit_network_policy_protocol_port_1 service");
-	struct vsip_ppo_t policy;
-	struct user_metadata_t *md = trn_itf_table_find(itf);
-	if (!md) {
-		TRN_LOG_ERROR("Cannot find interface metadata for %s", itf);
-		result = RPC_TRN_ERROR;
-		goto error;
-	}
-
-	policy.tunnel_id = ppo_key->tunid;
-	policy.local_ip = ppo_key->local_ip;
-	policy.proto = ppo_key->proto;
-	policy.port = ppo_key->port;
-	TRN_LOG_INFO("ppo: tunnel_id  %ld; local ip  0x%x; protocol  %d; port  %d\n", 
-				ppo_key->tunid, ppo_key->local_ip, ppo_key->proto, ppo_key->port);
-
-	rc = trn_delete_transit_network_policy_protocol_port_map(md, &policy);
-
-	if (rc != 0) {
-		TRN_LOG_ERROR("Failure deleting transit network policy protocol port map\n");
-		result = RPC_TRN_FATAL;
-		goto error;
-	}
-
-	result = 0;
-	return &result;
-
-error:
-	return &result;
-}
-
-int *delete_agent_network_policy_protocol_port_1_svc(rpc_trn_vsip_ppo_key_t *ppo_key, struct svc_req *rqstp)
-{
-	UNUSED(rqstp);
-	static int result = -1;
-	int rc;
-	char *itf = ppo_key->interface;
-
-	TRN_LOG_INFO("delete_agent_network_policy_protocol_port_1 service");
-	struct vsip_ppo_t policy;
-	struct agent_user_metadata_t *md = trn_vif_table_find(itf);
-	if (!md) {
-		TRN_LOG_ERROR("Cannot find interface metadata for %s", itf);
-		result = RPC_TRN_ERROR;
-		goto error;
-	}
-
-	policy.tunnel_id = ppo_key->tunid;
-	policy.local_ip = ppo_key->local_ip;
-	policy.proto = ppo_key->proto;
-	policy.port = ppo_key->port;
-
-	TRN_LOG_INFO("ppo: tunnel_id  %ld; local ip  0x%x; protocol  %d; port  %d \n", 
-				ppo_key->tunid, ppo_key->local_ip, ppo_key->proto, ppo_key->port);
-
-	rc = trn_delete_agent_network_policy_protocol_port_map(md, &policy);
-
-	if (rc != 0) {
-		TRN_LOG_ERROR("Failure updating agent network policy protocol port map \n");
-		result = RPC_TRN_FATAL;
 		goto error;
 	}
 

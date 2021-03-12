@@ -47,26 +47,6 @@ class OprStore(object):
         self.eps_net_store = {}
         self.eps_pod_store = {}
 
-        self.networkpolicies_store = {}
-        self.eps_store_to_be_updated_networkpolicy = set()
-        self.pod_names_to_be_ignored_by_networkpolicy = set()
-        self.networkpolicies_to_be_updated_store = {}
-
-        # label of pods in networkpolicy.spec.podSelector
-        self.label_networkpolicies_store = {}
-        # label of pods in networkpolicy ingress rules
-        self.label_networkpolicies_ingress_store = {}
-        # label of pods in networkpolicy egress rules
-        self.label_networkpolicies_egress_store = {}
-
-        # label of namespaces in networkpolicy ingress rules
-        self.namespace_label_networkpolicies_ingress_store = {}
-        # label of namespaces in networkpolicy egress rules
-        self.namespace_label_networkpolicies_egress_store = {}
-
-        self.networkpolicy_endpoints_ingress_store = {}
-        self.networkpolicy_endpoints_egress_store = {}
-
         self.dividers_store = {}
         self.dividers_vpc_store = {}
 
@@ -145,16 +125,6 @@ class OprStore(object):
 
     def update_ep(self, ep):
         logger.info("Store update ep {}".format(ep.name))
-
-        old_ep = self.get_ep(ep.name)
-        if old_ep is not None:
-            if len(old_ep.ingress_networkpolicies) > 0 and len(ep.ingress_networkpolicies) == 0:
-                ep.ingress_networkpolicies = old_ep.ingress_networkpolicies
-            if len(old_ep.egress_networkpolicies) > 0 and len(ep.egress_networkpolicies) == 0:
-                ep.egress_networkpolicies = old_ep.egress_networkpolicies
-            if len(old_ep.data_for_networkpolicy) > 0 and len(ep.data_for_networkpolicy) == 0:
-                ep.data_for_networkpolicy = old_ep.data_for_networkpolicy
-
         # logger.info('caller name:{}'.format(inspect.stack()[1][3]))
         self.eps_store[ep.name] = ep
         if ep.net not in self.eps_net_store:
@@ -206,119 +176,6 @@ class OprStore(object):
     def _dump_eps(self):
         for e in self.eps_store.values():
             logger.debug("EP: {}, Spec: {}".format(e.name, e.get_obj_spec()))
-
-    def get_networkpolicy(self, name):
-        if name in self.networkpolicies_store:
-            return self.networkpolicies_store[name]
-        return None
-
-    def update_networkpolicy(self, networkpolicy):
-        logger.info("Store update networkpolicy {}".format(networkpolicy.name))
-        self.networkpolicies_store[networkpolicy.name] = networkpolicy
-
-    def delete_networkpolicy(self, name):
-        if name in self.networkpolicies_store:
-            del self.networkpolicies_store[name]
-        self.delete_networkpolicy_in_label_policy_store(self.label_networkpolicies_store, name)
-        self.delete_networkpolicy_in_label_policy_store(self.label_networkpolicies_ingress_store, name)
-        self.delete_networkpolicy_in_label_policy_store(self.label_networkpolicies_egress_store, name)
-        self.delete_networkpolicy_in_label_policy_store(self.namespace_label_networkpolicies_ingress_store, name)
-        self.delete_networkpolicy_in_label_policy_store(self.namespace_label_networkpolicies_egress_store, name)
-
-    def delete_networkpolicy_in_label_policy_store(self, label_policy_store, policy_name):
-        label_list = set()
-        for label in label_policy_store:
-            if policy_name in label_policy_store[label]:
-                label_policy_store[label].remove(policy_name)
-                if len(label_policy_store[label]) == 0:
-                    label_list.add(label)
-
-        for label in label_list:
-            label_policy_store.pop(label)
-
-    def get_networkpolicies_to_be_updated_by_pod(self, pod_name):
-        if pod_name in self.networkpolicies_to_be_updated_store:
-            return self.networkpolicies_to_be_updated_store[pod_name]
-        return None
-
-    def add_networkpolicies_to_be_updated(self, pod_name, policy_name):
-        if pod_name not in self.networkpolicies_to_be_updated_store:
-            self.networkpolicies_to_be_updated_store[pod_name] = set()
-        self.networkpolicies_to_be_updated_store[pod_name].add(policy_name)
-
-    def get_networkpolicies_by_label(self, label):
-        if label in self.label_networkpolicies_store:
-            return self.label_networkpolicies_store[label]
-        return None
-
-    def add_label_networkpolicy(self, label, policy_name):
-        if label not in self.label_networkpolicies_store:
-            self.label_networkpolicies_store[label] = set()
-        self.label_networkpolicies_store[label].add(policy_name)
-
-    def get_networkpolicies_by_label_ingress(self, label):
-        if label in self.label_networkpolicies_ingress_store:
-            return self.label_networkpolicies_ingress_store[label]
-        return None
-
-    def add_label_networkpolicy_ingress(self, label, policy_name_list):
-        if label not in self.label_networkpolicies_ingress_store:
-            self.label_networkpolicies_ingress_store[label] = set()
-        for policy_name in policy_name_list:
-            self.label_networkpolicies_ingress_store[label].add(policy_name)
-
-    def get_networkpolicies_by_label_egress(self, label):
-        if label in self.label_networkpolicies_egress_store:
-            return self.label_networkpolicies_egress_store[label]
-        return None
-
-    def add_label_networkpolicy_egress(self, label, policy_name_list):
-        if label not in self.label_networkpolicies_egress_store:
-            self.label_networkpolicies_egress_store[label] = set()
-        for policy_name in policy_name_list:
-            self.label_networkpolicies_egress_store[label].add(policy_name)
-
-    def get_networkpolicies_by_namespace_label_ingress(self, label):
-        if label in self.namespace_label_networkpolicies_ingress_store:
-            return self.namespace_label_networkpolicies_ingress_store[label]
-        return None
-
-    def add_namespace_label_networkpolicy_ingress(self, label, policy_name_list):
-        if label not in self.namespace_label_networkpolicies_ingress_store:
-            self.namespace_label_networkpolicies_ingress_store[label] = set()
-        for policy_name in policy_name_list:
-            self.namespace_label_networkpolicies_ingress_store[label].add(policy_name)
-
-    def get_networkpolicies_by_namespace_label_egress(self, label):
-        if label in self.namespace_label_networkpolicies_egress_store:
-            return self.namespace_label_networkpolicies_egress_store[label]
-        return None
-
-    def add_namespace_label_networkpolicy_egress(self, label, policy_name_list):
-        if label not in self.namespace_label_networkpolicies_egress_store:
-            self.namespace_label_networkpolicies_egress_store[label] = set()
-        for policy_name in policy_name_list:
-            self.namespace_label_networkpolicies_egress_store[label].add(policy_name)
-
-    def get_endpoints_by_networkpolicy_ingress(self, policy_name):
-        if policy_name in self.networkpolicy_endpoints_ingress_store:
-            return self.networkpolicy_endpoints_ingress_store[policy_name]
-        return None
-
-    def add_networkpolicy_endpoint_ingress(self, policy_name, endpoint_name):
-        if policy_name not in self.networkpolicy_endpoints_ingress_store:
-            self.networkpolicy_endpoints_ingress_store[policy_name] = set()
-        self.networkpolicy_endpoints_ingress_store[policy_name].add(endpoint_name)
-
-    def get_endpoints_by_networkpolicy_egress(self, policy_name):
-        if policy_name in self.networkpolicy_endpoints_egress_store:
-            return self.networkpolicy_endpoints_egress_store[policy_name]
-        return None
-
-    def add_networkpolicy_endpoint_egress(self, policy_name, endpoint_name):
-        if policy_name not in self.networkpolicy_endpoints_egress_store:
-            self.networkpolicy_endpoints_egress_store[policy_name] = set()
-        self.networkpolicy_endpoints_egress_store[policy_name].add(endpoint_name)
 
     def update_droplet(self, droplet):
         self.droplets_store[droplet.name] = droplet

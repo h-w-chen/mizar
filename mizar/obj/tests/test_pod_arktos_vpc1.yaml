@@ -9,6 +9,6 @@ metadata:
 spec:
   containers:
   - name: arktospodvpc1net1
-    image: mizarnet/testpod
+    image: fwnetworking/testpod
     ports:
       - containerPort: 443
