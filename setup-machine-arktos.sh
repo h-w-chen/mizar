@@ -2,33 +2,15 @@
 
 ####################
 
-echo Setup: Enable password login
-
-sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
-### Set password: sudo passwd ubuntu
-sudo service sshd restart
-
-####################
-
-echo Setup: Install remote desktop
-
-sudo apt update
-sudo apt install -y ubuntu-desktop xrdp
-
-sudo service xrdp restart
-sudo apt install -y xfce4 xfce4-goodies
-echo xfce4-session >~/.xsession
-
-####################
-
-echo Setup: Install go \(currently limited to version 1.12.12\)
+echo Setup: Install go \(currently limited to version 1.13.9\)
 
 sudo apt-get update -y -q
+sudo apt-get install libreadline-gplv2-dev libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev -y -q
 
 cd /tmp
-wget https://dl.google.com/go/go1.12.12.linux-amd64.tar.gz
-sudo tar -C /usr/local -xzf go1.12.12.linux-amd64.tar.gz
-rm -rf go1.12.12.linux-amd64.tar.gz
+wget https://dl.google.com/go/go1.13.9.linux-amd64.tar.gz
+sudo tar -C /usr/local -xzf go1.13.9.linux-amd64.tar.gz
+rm -rf go1.13.9.linux-amd64.tar.gz
 
 ####################
 
@@ -43,23 +25,10 @@ chmod +x bazel-0.26.1-installer-linux-x86_64.sh
 
 ####################
 
-echo Setup: Install goland
-
-cd /tmp
-wget https://download.jetbrains.com/go/goland-2019.3.4.tar.gz
-tar -xzf goland-2019.3.4.tar.gz
-mv GoLand-2019.3.4 ~/GoLand-2019.3.4
-
-echo fs.inotify.max_user_watches=524288 > ./max_user_watches.conf
-sudo mv ./max_user_watches.conf /etc/sysctl.d/
-sudo sysctl -p --system
-
-####################
-
 echo Setup: Enlist arktos
 
 cd ~
-git clone https://github.com/centaurus-cloud/arktos.git ~/go/src/k8s.io/arktos
+git clone https://github.com/CentaurusInfra/arktos.git ~/go/src/k8s.io/arktos
 cd ~/go/src/k8s.io
 ln -s ./arktos kubernetes
 
@@ -77,27 +46,8 @@ git tag v1.15.0
 
 echo Setup: Install Docker
 
-sudo apt-get update -y -q
-
-sudo apt-get install \
-    apt-transport-https \
-    ca-certificates \
-    curl \
-    gnupg-agent \
-    software-properties-common -y -q
-
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-sudo apt-key fingerprint 0EBFCD88
-
-sudo add-apt-repository \
-   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
-   $(lsb_release -cs) \
-   stable"
-
-sudo apt-get update -y -q
-sudo apt-get install docker-ce docker-ce-cli containerd.io -y -q
+sudo apt -y install docker.io
 sudo gpasswd -a $USER docker
-
 
 ####################
 
@@ -125,8 +75,21 @@ sudo systemctl restart containerd
 
 echo Setup: Install miscellaneous
 
+wget -O /home/ubuntu/Python-3.8.8.tgz https://www.python.org/ftp/python/3.8.8/Python-3.8.8.tgz
+tar -C /home/ubuntu -xzf /home/ubuntu/Python-3.8.8.tgz
+cd /home/ubuntu/Python-3.8.8
+sudo ./configure
+sudo make
+sudo make install
+sudo ln -sfn /usr/local/bin/python3.8 /usr/bin/python3
+sudo apt remove -fy python3-apt
+sudo apt install -fy python3-apt
+sudo apt update
+sudo apt install -fy python3-pip
+sudo sed -i '1c\#!/usr/bin/python3.8 -Es' /usr/bin/lsb_release
+sudo usr/local/bin/python3.8 -m pip install --upgrade pip -y -q
+
 sudo apt install awscli -y -q
-sudo apt install python-pip -y -q
 sudo apt install jq -y -q
 
 ####################
@@ -170,30 +133,18 @@ curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s http
 chmod +x ./kubectl
 sudo mv ./kubectl /usr/local/bin/kubectl
 
-pip3 install fs
-pip3 install protobuf
-pip3 install grpcio
-pip3 install grpcio-tools
-pip3 install luigi==2.8.12
-pip3 install kubernetes==11.0.0
-pip3 install rpyc
-pip3 install pyroute2
-pip3 install ipaddress
-pip3 install netaddr
-pip3 install kopf
-pip3 install PyYAML
-
-####################
-
-echo Setup: Change Containerd
-
-wget -qO- https://github.com/futurewei-cloud/containerd/releases/download/tenant-cni-args/containerd.zip | zcat > /tmp/containerd
-chmod +x /tmp/containerd
-sudo systemctl stop containerd
-sudo mv /usr/bin/containerd /usr/bin/containerd.bak
-sudo mv /tmp/containerd /usr/bin/
-sudo systemctl restart containerd
-sudo systemctl start docker
+sudo pip3 install fs
+sudo pip3 install protobuf
+sudo pip3 install grpcio
+sudo pip3 install grpcio-tools
+sudo pip3 install luigi==2.8.12
+sudo pip3 install kubernetes==11.0.0
+sudo pip3 install rpyc
+sudo pip3 install pyroute2
+sudo pip3 install ipaddress
+sudo pip3 install netaddr
+sudo pip3 install kopf
+sudo pip3 install PyYAML
 
 ####################
 
@@ -208,7 +159,7 @@ echo alias k8s=\"cd \$HOME/go/src/k8s.io/kubernetes\" >> ~/.profile
 echo alias mizar=\"cd \$HOME/mizar\" >> ~/.profile
 echo alias up=\"\$HOME/go/src/k8s.io/arktos/hack/arktos-up.sh\" >> ~/.profile
 echo alias status=\"git status\" >> ~/.profile
-echo alias pods=\"kubectl get pods -o wide\" >> ~/.profile
+echo alias pods=\"kubectl get pods -A -o wide\" >> ~/.profile
 echo alias nets=\"echo 'kubectl get subnets'\; kubectl get subnets\; echo\; echo 'kubectl get droplets'\; kubectl get droplets\; echo\; echo 'kubectl get bouncers'\; kubectl get bouncers\; echo\; echo 'kubectl get dividers'\; kubectl get dividers\; echo\; echo 'kubectl get vpcs'\; kubectl get vpcs\; echo\; echo 'kubectl get eps'\; kubectl get eps\; echo\; echo 'kubectl get networks'\; kubectl get networks\" >> ~/.profile
 
 echo export PYTHONPATH=\"\$HOME/mizar/\" >> ~/.profile

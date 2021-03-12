@@ -38,9 +38,15 @@ class ArktosService(BuiltinsServiceServicer):
         logger.info("Creating pod from Arktos Service {}".format(request.name))
         param = reset_param(HandlerParam())
         param.name = request.name
+        param.namespace = request.namespace
         param.body['status'] = {}
         param.body['metadata'] = {}
         param.body['status']['hostIP'] = request.host_ip
+        if param.body['status']['hostIP'] == '':
+            return ReturnCode(
+                code=CodeType.TEMP_ERROR,
+                message="Missing hostIP during pod create"
+            )
         param.body['metadata']['namespace'] = request.namespace
         param.body['status']['phase'] = request.phase
         param.body['metadata']['tenant'] = request.tenant
@@ -174,6 +180,7 @@ class ArktosService(BuiltinsServiceServicer):
             "Deleting pod from Network Controller {}".format(request.name))
         param = reset_param(HandlerParam())
         param.name = request.name
+        param.namespace = request.namespace        
         return run_arktos_workflow(wffactory().k8sPodDelete(param=param))
 
     def DeleteService(self, request, context):

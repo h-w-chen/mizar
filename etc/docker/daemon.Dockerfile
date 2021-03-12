@@ -19,7 +19,8 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 # THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-FROM fwnetworking/python_base:latest
+FROM mizarnet/python_base:latest
 COPY . /var/mizar/
+RUN apt update && apt-get install -y iproute2
 RUN pip3 install /var/mizar/
 CMD mizard

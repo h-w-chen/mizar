@@ -19,12 +19,14 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 # THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+import os
 import subprocess
 import ctypes
 import logging
 import luigi
 import kopf
 import datetime
+import json
 import dateutil.parser
 from kubernetes import watch, client
 from ctypes.util import find_library
@@ -277,6 +279,72 @@ def kube_read_config_map(core_api, name, namespace):
     except:
         return None
 
+def kube_list_namespaces_by_labels(core_api, label_dict):
+    try:
+        label_filter = build_label_filter(label_dict)
+        response = core_api.list_namespace(
+            watch=False,
+            label_selector=label_filter
+        )
+        return response
+    except:
+        return None
+
+def kube_list_pods_by_labels(core_api, label_dict, namespace=None):
+    try:
+        field_selector = "" if namespace is None else "metadata.namespace={}".format(namespace)
+        label_filter = build_label_filter(label_dict)
+        response = core_api.list_pod_for_all_namespaces(
+            watch=False,
+            label_selector=label_filter,
+            field_selector=field_selector
+        )
+        return response
+    except:
+        return None
+
+def kube_list_pods_by_namespace(core_api, namespace):
+    try:
+        response = core_api.list_pod_for_all_namespaces(
+            watch=False,
+            field_selector="metadata.namespace={}".format(namespace)
+        )
+        return response
+    except:
+        return None
+
+def build_label_filter(label_dict):
+    str_list = []
+    for key in label_dict:
+        str_list.append(key)
+        str_list.append("=")
+        str_list.append(label_dict[key])
+        str_list.append(",")
+    if len(str_list) > 0:
+        str_list.pop()
+    return "".join(str_list)
+
+def kube_get_pod(core_api, name):
+    try:
+        response = core_api.list_pod_for_all_namespaces(
+            watch=False,
+            field_selector="metadata.name={}".format(name)
+        )
+        if response is not None and len(response.items) > 0:
+            return response.items[0]
+    except:
+        return None
+
+def kube_get_namespace(core_api, name):
+    try:
+        response = core_api.list_namespace(
+            watch=False,
+            field_selector="metadata.name={}".format(name)
+        )
+        if response is not None and len(response.items) > 0:
+            return response.items[0]
+    except:
+        return None
 
 def get_spec_val(key, spec, default=""):
     return default if key not in spec else spec[key]
@@ -340,3 +408,16 @@ def reset_param(param):
     param.extra = None
     param.return_message = None
     return param
+
+def conf_list_has_max_elements(conf, conf_list):
+    # +1 is for comma that will get added during json conversion
+    item_len = len(json.dumps(conf)) + 1
+    counter = len(json.dumps(conf_list)) + item_len
+    if (counter + item_len > CONSTANTS.MAX_CLI_CHAR_LENGTH):
+        return True
+    return False
+
+def bindmount_netns(src_netns_path, dst_netns_path):
+    os.mknod(dst_netns_path)
+    bindmount = subprocess.run(["mount", "--bind", src_netns_path, dst_netns_path])
+    return bindmount.returncode

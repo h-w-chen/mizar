@@ -46,6 +46,21 @@ class Cni:
         self.interface = os.environ.get("CNI_IFNAME")
         self.cni_path = os.environ.get("CNI_PATH")
         self.cni_args = os.environ.get("CNI_ARGS")
+        self.cni_args_dict = {}
+        if self.command == "VERSION":
+            return
+
+        netns_folder = "/var/run/netns/"
+        if not self.netns.startswith(netns_folder):
+            dst_netns = self.netns.replace('/', '_')
+            dst_netns_path = os.path.join(netns_folder, dst_netns)
+            if self.command == "ADD":
+                errorcode = bindmount_netns(self.netns, dst_netns_path)
+                if errorcode != 0:
+                    logger.error("failed to bind mount {} to {}: error code {}".format(self.netns, dst_netns_path, errorcode))
+                    raise OSError("failed to bind mount netns {} to {}, error code: {}".format(self.netns, dst_netns_path, errorcode))
+            self.netns = dst_netns_path
+
         self.cni_args_dict = dict(i.split("=")
                                   for i in self.cni_args.split(";"))
         self.k8s_namespace = self.cni_args_dict.get('K8S_POD_NAMESPACE', '')
@@ -73,11 +88,13 @@ class Cni:
         self.iproute = IPRoute()
 
     def __del__(self):
-        logger.info("Closing IPRoute")
-        self.iproute.close()
+        if self.command != "VERSION":
+            logger.info("Closing IPRoute")
+            self.iproute.close()
 
     def run(self):
-        logging.info("CNI ARGS {}".format(self.cni_args_dict))
+        if len(self.cni_args_dict) != 0:
+            logging.info("CNI ARGS {}".format(self.cni_args_dict))
         val = "Unsuported cni command!"
         switcher = {
             'ADD': self.do_add,
@@ -141,7 +158,7 @@ class Cni:
         the GW.
         """
 
-        head, netns = os.path.split(self.netns)
+        _, netns = os.path.split(self.netns)
         iproute_ns = NetNS(netns)
         veth_index = get_iface_index(interface.veth.name, self.iproute)
 
@@ -182,6 +199,9 @@ class Cni:
                               interface=self.interface)
         InterfaceServiceClient(
             "localhost").DeleteInterface(param)
+        _, netns = os.path.split(self.netns)
+        if len(netns) > 0:
+            subprocess.run(["ip", "netns", "delete", netns])
         exit(0)
 
     def do_get(self):

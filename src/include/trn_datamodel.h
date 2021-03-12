@@ -148,3 +148,33 @@ struct scaled_endpoint_remote_t {
 	unsigned char h_source[6];
 	unsigned char h_dest[6];
 } __attribute__((packed));
+
+struct vsip_enforce_t {
+	__u64 tunnel_id;
+	__be32 local_ip;
+} __attribute__((packed));
+
+struct vsip_cidr_t {
+	__u32 prefixlen;
+	__u64 tunnel_id;
+	__be32 local_ip;
+	__be32 remote_ip;
+} __attribute__((packed));
+
+struct vsip_ppo_t {
+	__u64 tunnel_id;
+	__be32 local_ip;
+	__u8 proto;
+	__be16 port;
+} __attribute__((packed));
+
+struct ipv4_ct_tuple_t {
+	struct vpc_key_t vpc;
+	struct ipv4_tuple_t tuple;
+} __attribute__((packed));
+
+enum conn_status {
+	TRFFIC_DENIED	= 1 << 0,	// traffic is denied (1) or default allowed (0)
+	UNI_DIRECTION 	= 1 << 1,	// reserved; traffic is uni-direction only, or bi-direction
+	FLAG_REEVAL 	= 1 << 2,	// need to re-evaluate allow/deny traffic
+};

@@ -142,3 +142,8 @@ BPF_ANNOTATE_KV_PAIR(ep_host_cache, struct endpoint_key_t,
 		     struct remote_endpoint_t);
 
 struct bpf_map_def SEC("maps") xdpcap_hook = XDPCAP_HOOK();
+
+// DONOT change the location of this inlude for now.
+// pinned maps for egress policy checks (shared by transit agent xdp progs)
+// and the global conn_track map
+#include "shared_map_defs.h"

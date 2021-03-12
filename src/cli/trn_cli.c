@@ -52,6 +52,18 @@ static const struct cmd {
 	{ "delete-agent-metadata", trn_cli_delete_agent_md_subcmd },
 	{ "load-pipeline-stage", trn_cli_load_pipeline_stage_subcmd },
 	{ "unload-pipeline-stage", trn_cli_unload_pipeline_stage_subcmd },
+	{ "update-net-policy-in", trn_cli_update_transit_network_policy_subcmd },
+	{ "update-net-policy-out", trn_cli_update_agent_network_policy_subcmd },
+	{ "delete-net-policy-in", trn_cli_delete_transit_network_policy_subcmd },
+	{ "delete-net-policy-out", trn_cli_delete_agent_network_policy_subcmd },
+	{ "update-net-policy-enforce-in", trn_cli_update_transit_network_policy_enforcement_subcmd },
+	{ "update-net-policy-enforce-out", trn_cli_update_agent_network_policy_enforcement_subcmd },
+	{ "delete-net-policy-enforce-in", trn_cli_delete_transit_network_policy_enforcement_subcmd },
+	{ "delete-net-policy-enforce-out", trn_cli_delete_agent_network_policy_enforcement_subcmd },
+	{ "update-net-policy-protocol-port-in", trn_cli_update_transit_network_policy_protocol_port_subcmd },
+	{ "update-net-policy-protocol-port-out", trn_cli_update_agent_network_policy_protocol_port_subcmd },
+	{ "delete-net-policy-protocol-port-in", trn_cli_delete_transit_network_policy_protocol_port_subcmd },
+	{ "delete-net-policy-protocol-port-out", trn_cli_delete_agent_network_policy_protocol_port_subcmd },
 	{ 0 },
 };
 

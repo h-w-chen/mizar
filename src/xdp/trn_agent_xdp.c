@@ -43,6 +43,7 @@
 #include "trn_datamodel.h"
 #include "trn_agent_xdp_maps.h"
 #include "trn_kern.h"
+#include "conntrack_common.h"
 
 int _version SEC("version") = 1;
 #define SPORT_MAX 6553
@@ -280,7 +281,6 @@ static __inline int trn_redirect(struct transit_packet *pkt, __u32 inner_src_ip,
 static __inline int trn_process_inner_ip(struct transit_packet *pkt)
 {
 	pkt->inner_ip = (void *)pkt->inner_eth + pkt->inner_eth_off;
-	__u32 ipproto;
 
 	if (pkt->inner_ip + 1 > pkt->data_end) {
 		bpf_debug("[Agent:%ld.0x%x] ABORTED: Bad offset [%d]\n",
@@ -331,6 +331,37 @@ static __inline int trn_process_inner_ip(struct transit_packet *pkt)
 
 		pkt->inner_ipv4_tuple.sport = pkt->inner_udp->source;
 		pkt->inner_ipv4_tuple.dport = pkt->inner_udp->dest;
+	}
+
+	if (pkt->inner_ipv4_tuple.protocol == IPPROTO_TCP || pkt->inner_ipv4_tuple.protocol == IPPROTO_UDP) {
+		__u8 *tracked_state = get_originated_conn_state(&conn_track_cache, pkt->agent_ep_tunid, &pkt->inner_ipv4_tuple);
+		// todo: only check for bi-directional connections
+		if (NULL != tracked_state){
+			// reply packet is usually allowed, unless re-eval blocks it
+			if (0 != egress_reply_packet_check(pkt->agent_ep_tunid, &pkt->inner_ipv4_tuple, *tracked_state))
+			{
+				bpf_debug("[Agent:%ld.0x%x] ABORTED: packet to 0x%x egress policy denied, reply of a denied conn\n",
+					pkt->agent_ep_tunid,
+					bpf_ntohl(pkt->agent_ep_ipv4),
+					bpf_ntohl(pkt->inner_ip->daddr));
+				return XDP_ABORTED;
+			}
+		} else {
+			// originated-directional packet subjects to policy check, if required so
+			if (0 != egress_policy_check(pkt->agent_ep_tunid, &pkt->inner_ipv4_tuple)) {
+				bpf_debug("[Agent:%ld.0x%x] ABORTED: packet to 0x%x egress policy denied\n",
+					pkt->agent_ep_tunid,
+					bpf_ntohl(pkt->agent_ep_ipv4),
+					bpf_ntohl(pkt->inner_ip->daddr));
+				__u8 conn_denied = (pkt->inner_ipv4_tuple.protocol == IPPROTO_UDP) ? FLAG_REEVAL | TRFFIC_DENIED : TRFFIC_DENIED;
+				conntrack_set_conn_state(&conn_track_cache, pkt->agent_ep_tunid, &pkt->inner_ipv4_tuple, conn_denied);
+				return XDP_ABORTED;
+			}
+
+			// todo: consider to handle error in case it happens
+			__u8 conn_allowed = (pkt->inner_ipv4_tuple.protocol == IPPROTO_UDP) ? FLAG_REEVAL : 0;
+			conntrack_set_conn_state(&conn_track_cache, pkt->agent_ep_tunid, &pkt->inner_ipv4_tuple, conn_allowed);
+		}
 	}
 
 	/* Check if we need to apply a forward flow update */

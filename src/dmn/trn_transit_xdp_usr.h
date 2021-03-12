@@ -66,6 +66,17 @@ struct ebpf_prog_stage_t {
 	int rev_flow_mod_cache_ref_fd;
 	int ep_flow_host_cache_ref_fd;
 	int ep_host_cache_ref_fd;
+	int eg_vsip_enforce_map_ref_fd;
+	int eg_vsip_prim_map_ref_fd;
+	int eg_vsip_ppo_map_ref_fd;
+	int eg_vsip_supp_map_ref_fd;
+	int eg_vsip_except_map_ref_fd;
+	int ing_vsip_enforce_map_ref_fd;
+	int ing_vsip_prim_map_ref_fd;
+	int ing_vsip_ppo_map_ref_fd;
+	int ing_vsip_supp_map_ref_fd;
+	int ing_vsip_except_map_ref_fd;
+	int conn_track_cache_ref_fd;
 
 	struct bpf_map *networks_map_ref;
 	struct bpf_map *vpc_map_ref;
@@ -79,6 +90,17 @@ struct ebpf_prog_stage_t {
 	struct bpf_map *rev_flow_mod_cache_ref;
 	struct bpf_map *ep_flow_host_cache_ref;
 	struct bpf_map *ep_host_cache_ref;
+	struct bpf_map *eg_vsip_enforce_map_ref;
+	struct bpf_map *eg_vsip_prim_map_ref;
+	struct bpf_map *eg_vsip_ppo_map_ref;
+	struct bpf_map *eg_vsip_supp_map_ref;
+	struct bpf_map *eg_vsip_except_map_ref;
+	struct bpf_map *ing_vsip_enforce_map_ref;
+	struct bpf_map *ing_vsip_prim_map_ref;
+	struct bpf_map *ing_vsip_ppo_map_ref;
+	struct bpf_map *ing_vsip_supp_map_ref;
+	struct bpf_map *ing_vsip_except_map_ref;
+	struct bpf_map *conn_track_cache_ref;
 };
 
 struct user_metadata_t {
@@ -103,6 +125,17 @@ struct user_metadata_t {
 	int rev_flow_mod_cache_fd;
 	int ep_flow_host_cache_fd;
 	int ep_host_cache_fd;
+	int eg_vsip_enforce_map_fd;
+	int eg_vsip_prim_map_fd;
+	int eg_vsip_ppo_map_fd;
+	int eg_vsip_supp_map_fd;
+	int eg_vsip_except_map_fd;
+	int ing_vsip_enforce_map_fd;
+	int ing_vsip_prim_map_fd;
+	int ing_vsip_ppo_map_fd;
+	int ing_vsip_supp_map_fd;
+	int ing_vsip_except_map_fd;
+	int conn_track_cache_fd;
 
 	struct bpf_map *jmp_table_map;
 	struct bpf_map *networks_map;
@@ -117,6 +150,17 @@ struct user_metadata_t {
 	struct bpf_map *ep_flow_host_cache;
 	struct bpf_map *ep_host_cache;
 	struct bpf_map *xdpcap_hook_map;
+	struct bpf_map *eg_vsip_enforce_map;
+	struct bpf_map *eg_vsip_prim_map;
+	struct bpf_map *eg_vsip_ppo_map;
+	struct bpf_map *eg_vsip_supp_map;
+	struct bpf_map *eg_vsip_except_map;
+	struct bpf_map *ing_vsip_enforce_map;
+	struct bpf_map *ing_vsip_prim_map;
+	struct bpf_map *ing_vsip_ppo_map;
+	struct bpf_map *ing_vsip_supp_map;
+	struct bpf_map *ing_vsip_except_map;
+	struct bpf_map *conn_track_cache;
 
 	struct bpf_prog_info info;
 	struct bpf_object *obj;
@@ -167,3 +211,24 @@ int trn_add_prog(struct user_metadata_t *md, unsigned int prog_idx,
 		 const char *prog_path);
 
 int trn_remove_prog(struct user_metadata_t *md, unsigned int prog_idx);
+
+int trn_update_transit_network_policy_map(int fd,
+					   struct vsip_cidr_t *ipcidr,
+					   __u64 bitmap);
+
+int trn_delete_transit_network_policy_map(int fd,
+					   struct vsip_cidr_t *ipcidr);
+
+int trn_update_transit_network_policy_enforcement_map(struct user_metadata_t *md,
+						      struct vsip_enforce_t *local,
+						      __u8 isenforce);
+
+int trn_delete_transit_network_policy_enforcement_map(struct user_metadata_t *md,
+						      struct vsip_enforce_t *local);
+
+int trn_update_transit_network_policy_protocol_port_map(struct user_metadata_t *md,
+						        struct vsip_ppo_t *policy,
+						        __u64 bitmap);
+
+int trn_delete_transit_network_policy_protocol_port_map(struct user_metadata_t *md,
+						        struct vsip_ppo_t *policy);

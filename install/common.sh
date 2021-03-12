@@ -44,7 +44,7 @@ function common:check_cluster_ready {
         kubectl cluster-info
     fi
 
-    local cluster_status=`kubectl cluster-info | grep Kubernetes | grep master | grep is | grep running`
+    local cluster_status=`kubectl cluster-info | grep Kubernetes | grep is | grep running`
     if [[ -z "$cluster_status" ]]; then
         return 0
     else
@@ -151,13 +151,10 @@ function common:build_docker_images {
     fi
 
     docker image build -t $docker_account/mizar:latest -f etc/docker/mizar.Dockerfile .
-    docker image push $docker_account/mizar:latest
     docker image build -t $docker_account/dropletd:latest -f etc/docker/daemon.Dockerfile .
-    docker image push $docker_account/dropletd:latest
     docker image build -t $docker_account/endpointopr:latest -f etc/docker/operator.Dockerfile .
-    docker image push $docker_account/endpointopr:latest
     docker image build -t $docker_account/testpod:latest -f etc/docker/test.Dockerfile .
-    docker image push $docker_account/testpod:latest
+    docker image build -t $docker_account/mizarcni:latest -f etc/docker/mizarcni.Dockerfile .
 }
 
 function common:check_pod_by_image {

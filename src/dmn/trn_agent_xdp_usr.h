@@ -68,6 +68,17 @@ struct agent_user_metadata_t {
 	int rev_flow_mod_cache_ref_fd;
 	int ep_flow_host_cache_ref_fd;
 	int ep_host_cache_ref_fd;
+	int eg_vsip_enforce_map_fd;
+	int eg_vsip_prim_map_fd;
+	int eg_vsip_ppo_map_fd;
+	int eg_vsip_supp_map_fd;
+	int eg_vsip_except_map_fd;
+	int ing_vsip_enforce_map_fd;
+	int ing_vsip_prim_map_fd;
+	int ing_vsip_ppo_map_fd;
+	int ing_vsip_supp_map_fd;
+	int ing_vsip_except_map_fd;
+	int conn_track_cache_fd;
 
 	int fwd_flow_mod_cache_map_fd;
 	int rev_flow_mod_cache_map_fd;
@@ -83,6 +94,17 @@ struct agent_user_metadata_t {
 	struct bpf_map *ep_flow_host_cache_ref;
 	struct bpf_map *ep_host_cache_ref;
 	struct bpf_map *xdpcap_hook_map;
+	struct bpf_map *eg_vsip_enforce_map;
+	struct bpf_map *eg_vsip_prim_map;
+	struct bpf_map *eg_vsip_ppo_map;
+	struct bpf_map *eg_vsip_supp_map;
+	struct bpf_map *eg_vsip_except_map;
+	struct bpf_map *ing_vsip_enforce_map;
+	struct bpf_map *ing_vsip_prim_map;
+	struct bpf_map *ing_vsip_ppo_map;
+	struct bpf_map *ing_vsip_supp_map;
+	struct bpf_map *ing_vsip_except_map;
+	struct bpf_map *conn_track_cache;
 
 	struct bpf_prog_info info;
 	struct bpf_object *obj;
@@ -116,3 +138,24 @@ int trn_agent_metadata_init(struct agent_user_metadata_t *md, char *itf,
 
 int trn_agent_add_prog(struct agent_user_metadata_t *umd, int prog,
 		       int prog_fd);
+
+int trn_update_agent_network_policy_map(int fd,
+					 struct vsip_cidr_t *cidr,
+					 __u64 bitmap);
+
+int trn_delete_agent_network_policy_map(int fd,
+					 struct vsip_cidr_t *ipcidr);
+
+int trn_update_agent_network_policy_enforcement_map(struct agent_user_metadata_t *md,
+						      struct vsip_enforce_t *local,
+						      __u8 isenforce);
+
+int trn_delete_agent_network_policy_enforcement_map(struct agent_user_metadata_t *md,
+						      struct vsip_enforce_t *local);
+
+int trn_update_agent_network_policy_protocol_port_map(struct agent_user_metadata_t *md,
+						        struct vsip_ppo_t *policy,
+						        __u64 bitmap);
+
+int trn_delete_agent_network_policy_protocol_port_map(struct agent_user_metadata_t *md,
+						        struct vsip_ppo_t *policy);
